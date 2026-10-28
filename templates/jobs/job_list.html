@@ -1,0 +1,154 @@
+{% extends 'jobs/base.html' %}
+
+{% block title %}Jobs — JobRadar{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header & Filter Form -->
+    <div class="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight">Explore Jobs</h1>
+            <p class="text-xs text-slate-400 mt-1">Total in database: {{ total_count }} | Detailed: {{ detailed_count }}</p>
+        </div>
+
+        <form method="GET" class="flex flex-wrap gap-2 w-full md:w-auto">
+            <input type="text" name="q" value="{{ selected_query }}" placeholder="Filter by title, company, skills..."
+                   class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3.5 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none flex-1 md:w-64">
+
+            <select name="status" class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-2 text-slate-300 focus:outline-none">
+                <option value="">All Statuses</option>
+                <option value="Detailed" {% if selected_status == 'Detailed' %}selected{% endif %}>Detailed</option>
+                <option value="Pending" {% if selected_status == 'Pending' %}selected{% endif %}>Pending</option>
+                <option value="Failed" {% if selected_status == 'Failed' %}selected{% endif %}>Failed</option>
+            </select>
+
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-sm px-4 py-2 rounded-lg font-medium transition flex items-center gap-1.5">
+                <i class="fa-solid fa-magnifying-glass"></i> Search
+            </button>
+        </form>
+    </div>
+
+    <!-- Jobs Grid -->
+    {% if jobs %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for job in jobs %}
+        <div class="bg-slate-800/60 border border-slate-800 hover:border-slate-700 rounded-xl p-5 flex flex-col justify-between transition group">
+            <div>
+                <div class="flex items-start justify-between gap-2">
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full {% if job.status == 'Detailed' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% elif job.status == 'Pending' %}bg-amber-500/10 text-amber-400 border border-amber-500/20{% else %}bg-rose-500/10 text-rose-400 border border-rose-500/20{% endif %}">
+                        {{ job.status }}
+                    </span>
+                    <span class="text-xs text-slate-500">{{ job.posted_date_text|default:"Recently" }}</span>
+                </div>
+
+                <h3 class="font-bold text-base mt-2 group-hover:text-indigo-400 transition line-clamp-1" title="{{ job.title }}">
+                    {{ job.title }}
+                </h3>
+                <p class="text-sm text-slate-300 mt-1 font-medium">{{ job.company_name|default:"Confidential Company" }}</p>
+                <p class="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                    <i class="fa-solid fa-location-dot text-slate-500"></i> {{ job.location|default:"Location not specified" }}
+                </p>
+
+                {% if job.employment_type or job.seniority_level %}
+                <div class="flex flex-wrap gap-1.5 mt-3">
+                    {% if job.employment_type and job.employment_type != "Not Applicable" %}
+                    <span class="text-[11px] bg-slate-900 text-slate-300 px-2 py-0.5 rounded border border-slate-700/50">{{ job.employment_type }}</span>
+                    {% endif %}
+                    {% if job.seniority_level and job.seniority_level != "Not Applicable" %}
+                    <span class="text-[11px] bg-slate-900 text-slate-300 px-2 py-0.5 rounded border border-slate-700/50">{{ job.seniority_level }}</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="pt-4 border-t border-slate-700/50 flex items-center justify-between mt-4">
+                <button onclick="openJobModal(this.dataset.id)" data-id="{{ job.id }}" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1">
+                    View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+                <a href="{{ job.job_url }}" target="_blank" class="text-xs text-slate-500 hover:text-blue-400">
+                    <i class="fa-brands fa-linkedin"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="flex justify-center gap-2 pt-4">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ selected_query }}&status={{ selected_status }}" class="px-3 py-1.5 bg-slate-800 rounded-lg text-xs hover:bg-slate-700">Previous</a>
+        {% endif %}
+        <span class="px-3 py-1.5 text-xs text-slate-400">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ selected_query }}&status={{ selected_status }}" class="px-3 py-1.5 bg-slate-800 rounded-lg text-xs hover:bg-slate-700">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-16 bg-slate-800/30 rounded-2xl border border-dashed border-slate-800">
+        <i class="fa-solid fa-magnifying-glass text-4xl text-slate-600 mb-3"></i>
+        <h3 class="text-base font-semibold">No vacancies found</h3>
+        <p class="text-xs text-slate-400 mt-1">Try adjusting filters or create a new search query.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal Dialog -->
+<div id="jobModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 w-full max-w-2xl max-h-[85vh] rounded-2xl flex flex-col overflow-hidden shadow-2xl">
+        <div class="p-5 border-b border-slate-800 flex justify-between items-start">
+            <div>
+                <h3 id="modalTitle" class="text-lg font-bold text-white"></h3>
+                <p id="modalCompany" class="text-sm text-indigo-400 font-medium mt-0.5"></p>
+            </div>
+            <button onclick="closeJobModal()" class="text-slate-400 hover:text-white p-1">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto space-y-4 text-sm text-slate-300">
+            <div class="flex flex-wrap gap-2 text-xs">
+                <span id="modalLocation" class="bg-slate-800 px-2.5 py-1 rounded-md text-slate-300"></span>
+                <span id="modalEmployment" class="bg-slate-800 px-2.5 py-1 rounded-md text-slate-300"></span>
+                <span id="modalSeniority" class="bg-slate-800 px-2.5 py-1 rounded-md text-slate-300"></span>
+            </div>
+            <hr class="border-slate-800">
+            <h4 class="font-semibold text-xs uppercase tracking-wider text-slate-400">Description</h4>
+            <div id="modalDescription" class="whitespace-pre-line leading-relaxed text-slate-300 text-xs"></div>
+        </div>
+
+        <div class="p-4 border-t border-slate-800 bg-slate-950 flex justify-end gap-3">
+            <button onclick="closeJobModal()" class="px-4 py-2 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Close</button>
+            <a id="modalApplyBtn" href="#" target="_blank" class="px-4 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium flex items-center gap-1.5">
+                Apply on LinkedIn <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+async function openJobModal(id) {
+    const modal = document.getElementById('jobModal');
+    try {
+        const res = await fetch(`/jobs/${id}/`);
+        const data = await res.json();
+        document.getElementById('modalTitle').textContent = data.title;
+        document.getElementById('modalCompany').textContent = data.company_name;
+        document.getElementById('modalLocation').textContent = `📍 ${data.location}`;
+        document.getElementById('modalEmployment').textContent = `💼 ${data.employment_type}`;
+        document.getElementById('modalSeniority').textContent = `🎯 ${data.seniority_level}`;
+        document.getElementById('modalDescription').textContent = data.description;
+        document.getElementById('modalApplyBtn').href = data.apply_url;
+        modal.classList.remove('hidden');
+    } catch (e) {
+        alert("Failed to load details.");
+    }
+}
+
+function closeJobModal() {
+    document.getElementById('jobModal').classList.add('hidden');
+}
+</script>
+{% endblock %}

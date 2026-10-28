@@ -1,0 +1,33 @@
+{% extends 'jobs/base.html' %}
+
+{% block title %}Sign In — JobRadar{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center py-12">
+    <div class="bg-slate-800/60 border border-slate-700/60 p-8 rounded-2xl w-full max-w-md space-y-6">
+        <div class="text-center">
+            <h2 class="text-xl font-bold">Sign In</h2>
+            <p class="text-xs text-slate-400 mt-1">Authenticate to manage your job scraper</p>
+        </div>
+
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Username</label>
+                <input type="text" name="username" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
+                <input type="password" name="password" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm py-2 rounded-lg transition">
+                Sign In
+            </button>
+        </form>
+
+        <p class="text-xs text-center text-slate-400">
+            Don't have an account? <a href="{% url 'jobs:register' %}" class="text-indigo-400 hover:underline">Register</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
