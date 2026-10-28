@@ -25,6 +25,13 @@
             <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-sm px-4 py-2 rounded-lg font-medium transition flex items-center gap-1.5">
                 <i class="fa-solid fa-magnifying-glass"></i> Search
             </button>
+
+            <!-- 1-Click CSV Export Button -->
+            <a href="{% url 'jobs:job_export_csv' %}?q={{ selected_query }}&status={{ selected_status }}&employment={{ selected_employment }}"
+               class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm px-4 py-2 rounded-lg font-medium transition flex items-center gap-1.5"
+               title="Export currently filtered vacancies to CSV">
+                <i class="fa-solid fa-file-csv"></i> Export CSV
+            </a>
         </form>
     </div>
 
@@ -77,11 +84,11 @@
     {% if is_paginated %}
     <div class="flex justify-center gap-2 pt-4">
         {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}&q={{ selected_query }}&status={{ selected_status }}" class="px-3 py-1.5 bg-slate-800 rounded-lg text-xs hover:bg-slate-700">Previous</a>
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ selected_query }}&status={{ selected_status }}&employment={{ selected_employment }}" class="px-3 py-1.5 bg-slate-800 rounded-lg text-xs hover:bg-slate-700">Previous</a>
         {% endif %}
         <span class="px-3 py-1.5 text-xs text-slate-400">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
         {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}&q={{ selected_query }}&status={{ selected_status }}" class="px-3 py-1.5 bg-slate-800 rounded-lg text-xs hover:bg-slate-700">Next</a>
+        <a href="?page={{ page_obj.next_page_number }}&q={{ selected_query }}&status={{ selected_status }}&employment={{ selected_employment }}" class="px-3 py-1.5 bg-slate-800 rounded-lg text-xs hover:bg-slate-700">Next</a>
         {% endif %}
     </div>
     {% endif %}
